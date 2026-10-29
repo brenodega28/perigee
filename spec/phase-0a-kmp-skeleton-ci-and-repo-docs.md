@@ -1,6 +1,6 @@
 ---
 title: "Phase 0a — KMP skeleton, CI and repo docs"
-status: in-progress
+status: done
 owner: Breno
 linked_runs: [58]
 created: 2026-10-28
@@ -37,15 +37,15 @@ First slice of ROADMAP Phase 0. Turns the empty repo into a Kotlin Multiplatform
 
 - [ ] `./gradlew check` passes locally from a clean clone (build + unit tests + ktlint + Android Lint)
 - [ ] `./gradlew :app-android:assembleDebug` produces an APK with applicationId `brenodega28.perigee`; `./gradlew :app-desktop:run` opens a window showing the placeholder screen
-- [ ] `./gradlew projects` lists exactly the 13 modules in Interfaces, with the folder layout from SPEC §4.2
+- [x] `./gradlew projects` lists exactly the 13 modules in Interfaces, with the folder layout from SPEC §4.2
 - [ ] core/* and probe/common compile for both android and jvm targets; `:probe:windows` is jvm-only, `:probe:android` is android-only
 - [ ] Each core module's trivial test runs and passes on jvm (visible in the test report)
 - [ ] A deliberate ktlint violation makes `./gradlew check` fail (checked by the builder, then reverted)
-- [ ] `.github/workflows/ci.yml` passes `actionlint` and runs the same tasks as local `check` on ubuntu, plus desktop build/tests on windows
-- [ ] LICENSE is the GPL-3.0 text; CODE_OF_CONDUCT.md is Contributor Covenant 2.1 with a contact placeholder; CONTRIBUTING.md and README.md list the real commands
+- [x] `.github/workflows/ci.yml` passes `actionlint` and runs the same tasks as local `check` on ubuntu, plus desktop build/tests on windows
+- [x] LICENSE is the GPL-3.0 text; CODE_OF_CONDUCT.md is Contributor Covenant 2.1 with a contact placeholder; CONTRIBUTING.md and README.md list the real commands
 - [ ] AGENTS.md Commands section lists the exact commands, and they work
-- [ ] No code comments are added to source files (user convention)
-- [ ] Versions of Kotlin, Compose Multiplatform, AGP and Gradle are current stable releases, pinned in the version catalog
+- [x] No code comments are added to source files (user convention)
+- [x] Versions of Kotlin, Compose Multiplatform, AGP and Gradle are current stable releases, pinned in the version catalog
 
 ## Verification
 
