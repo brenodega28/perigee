@@ -7,9 +7,9 @@ plugins {
 kotlin {
     sourceSets {
         commonMain.dependencies {
-            implementation(compose.runtime)
-            implementation(compose.foundation)
-            implementation(compose.material3)
+            implementation(versionCatalog.findLibrary("compose-runtime").get())
+            implementation(versionCatalog.findLibrary("compose-foundation").get())
+            implementation(versionCatalog.findLibrary("compose-material3").get())
         }
     }
 }
