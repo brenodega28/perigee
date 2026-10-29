@@ -1,3 +1,3 @@
 plugins {
-    id("perigee.kmp.library")
+    id("perigee.kmp.serialization")
 }

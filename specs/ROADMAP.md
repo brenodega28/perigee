@@ -21,7 +21,7 @@ Set up the project so every later phase plugs into it.
 - [x] Repo, license decision (SPEC §15), CONTRIBUTING, code of conduct
 - [x] KMP project skeleton: `core/*`, `probe/*`, `ui/*`, `app-android`, `app-desktop` (SPEC §4.2)
 - [ ] Design tokens + shared Compose components: score ring, category bar, check row, fix card
-- [ ] `core/model` and `core/scoring` v1 with **golden scenario fixtures** (the design's "tablet on 2.4 GHz" scenario must score 70)
+- [x] `core/model` and `core/scoring` v1 with **golden scenario fixtures** (the design's "tablet on 2.4 GHz" scenario must score 70)
 - [ ] GitHub Actions: build all targets, unit tests, lint
 - [ ] Resolve Q5 (peer ports)
 
