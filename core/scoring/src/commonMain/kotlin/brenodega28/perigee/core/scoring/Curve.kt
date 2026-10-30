@@ -7,7 +7,11 @@ class Curve(
     fun score(value: Double): Double {
         if (budget == floor) return if (value == budget) 1.0 else 0.0
         val position = (value - floor) / (budget - floor)
-        return position.coerceIn(0.0, 1.0)
+        return when {
+            position <= 0.0 -> 0.0
+            position >= 1.0 -> 1.0
+            else -> position
+        }
     }
 
     companion object {

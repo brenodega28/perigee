@@ -21,7 +21,12 @@ abstract class GenerateWeightsSource : DefaultTask() {
 
     @TaskAction
     fun generate() {
-        val text = weightsJson.get().asFile.readText().replace("$", "\${'$'}")
+        val text =
+            weightsJson
+                .get()
+                .asFile
+                .readText()
+                .replace("$", "\${'$'}")
         val packageDirectory = outputDirectory.get().asFile.resolve("brenodega28/perigee/core/scoring")
         packageDirectory.deleteRecursively()
         packageDirectory.mkdirs()

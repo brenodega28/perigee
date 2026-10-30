@@ -21,6 +21,12 @@ class EngineBehaviorTest {
         context: brenodega28.perigee.core.model.ScanContext = Fixtures.pairedContext,
     ) = engine.score(measurements, Fixtures.wiredSettings, context)
 
+    private fun ScoringEngine.scoreWired(measurements: Measurements) =
+        score(measurements, Fixtures.wiredSettings, Fixtures.pairedContext)
+
+    private fun wiredWith(build: MeasurementsBuilder.() -> Unit) =
+        Fixtures.wiredMeasurements.overriddenBy(measurements(build))
+
     private fun rttOnlyEngine(rtt: Double): Int {
         val weights =
             ScoringWeights.parse(
@@ -50,9 +56,8 @@ class EngineBehaviorTest {
                 }
                 """.trimIndent(),
             )
-        val total =
-            ScoringEngine(weights)
-                .score(measurements { number(MetricId.RttMedianMs, rtt, MeasureUnit.Ms) }, Fixtures.wiredSettings, Fixtures.pairedContext)
+        val rttOnly = measurements { number(MetricId.RttMedianMs, rtt, MeasureUnit.Ms) }
+        val total = ScoringEngine(weights).scoreWired(rttOnly)
         return total.total * 1000 + total.verdict.ordinal
     }
 
@@ -61,8 +66,9 @@ class EngineBehaviorTest {
         val score = scoreOf(Fixtures.wiredMeasurements)
         assertEquals(100, score.total)
         assertEquals(Verdict.Excellent, score.verdict)
-        assertEquals(true, score.checks.none { it.status == Status.Fail || it.status == Status.Warn || it.status == Status.Unknown })
-        val projection = engine.project(Fixtures.wiredMeasurements, Fixtures.wiredSettings, Fixtures.pairedContext, emptyList())
+        assertEquals(true, score.checks.all { it.status == Status.Pass })
+        val projection =
+            engine.project(Fixtures.wiredMeasurements, Fixtures.wiredSettings, Fixtures.pairedContext, emptyList())
         assertEquals(100, projection.projectedTotal)
         assertEquals(emptyList(), projection.gains)
     }
@@ -126,9 +132,8 @@ class EngineBehaviorTest {
                             flag(MetricId.HostHwEncoderAv1, false)
                         },
                     ),
-                HardCap.ApolloPortsBlocked to Fixtures.wiredMeasurements.overriddenBy(measurements { flag(MetricId.ApolloUdpPortsOpen, false) }),
-                HardCap.LossAboveLimit to
-                    Fixtures.wiredMeasurements.overriddenBy(measurements { number(MetricId.LossPercent, 2.5, MeasureUnit.Percent) }),
+                HardCap.ApolloPortsBlocked to wiredWith { flag(MetricId.ApolloUdpPortsOpen, false) },
+                HardCap.LossAboveLimit to wiredWith { number(MetricId.LossPercent, 2.5, MeasureUnit.Percent) },
                 HardCap.HostWifiClient24Ghz to
                     Fixtures.wiredMeasurements.overriddenBy(
                         measurements {
@@ -177,7 +182,8 @@ class EngineBehaviorTest {
         assertEquals(Confidence.Medium, scoreOf(Fixtures.wiredMeasurements, fallback).confidence)
         val unpaired = Fixtures.pairedContext.copy(paired = false)
         assertEquals(Confidence.Medium, scoreOf(Fixtures.wiredMeasurements, unpaired).confidence)
-        val skipped = Fixtures.pairedContext.copy(completedSteps = AnalysisStep.entries.toSet() - AnalysisStep.HostChecks)
+        val stepsWithoutHost = AnalysisStep.entries.toSet() - AnalysisStep.HostChecks
+        val skipped = Fixtures.pairedContext.copy(completedSteps = stepsWithoutHost)
         assertEquals(Confidence.Low, scoreOf(Fixtures.wiredMeasurements, skipped).confidence)
     }
 
@@ -185,9 +191,9 @@ class EngineBehaviorTest {
     fun inferredChecksContributingOverThresholdLowerConfidenceToMedium() {
         val text = ScoringWeightsText.inferredHeavy
         val heavy = ScoringEngine(ScoringWeights.parse(text))
-        val score = heavy.score(measurements { flag(MetricId.WmmEnabled, true) }, Fixtures.wiredSettings, Fixtures.pairedContext)
+        val score = heavy.scoreWired(measurements { flag(MetricId.WmmEnabled, true) })
         assertEquals(Confidence.Medium, score.confidence)
-        val light = heavy.score(measurements { flag(MetricId.WmmEnabled, false) }, Fixtures.wiredSettings, Fixtures.pairedContext)
+        val light = heavy.scoreWired(measurements { flag(MetricId.WmmEnabled, false) })
         assertEquals(Confidence.High, light.confidence)
     }
 

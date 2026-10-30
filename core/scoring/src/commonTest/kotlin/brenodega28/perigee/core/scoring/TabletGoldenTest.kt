@@ -4,6 +4,7 @@ import brenodega28.perigee.core.model.Category
 import brenodega28.perigee.core.model.Confidence
 import brenodega28.perigee.core.model.FixExpectation
 import brenodega28.perigee.core.model.MeasureUnit
+import brenodega28.perigee.core.model.MeasuredValue
 import brenodega28.perigee.core.model.MetricId
 import brenodega28.perigee.core.model.Status
 import brenodega28.perigee.core.model.Verdict
@@ -14,6 +15,9 @@ import kotlin.test.assertNull
 class TabletGoldenTest {
     private val engine = ScoringEngine()
     private val score = engine.score(Fixtures.tabletMeasurements, Fixtures.tabletSettings, Fixtures.pairedContext)
+
+    private fun projectTablet(fixes: List<FixExpectation>) =
+        engine.project(Fixtures.tabletMeasurements, Fixtures.tabletSettings, Fixtures.pairedContext, fixes)
 
     @Test
     fun scoresCategoriesAndTotal() {
@@ -69,7 +73,7 @@ class TabletGoldenTest {
 
     @Test
     fun projectsToNinetyOneWithDesignGainOrder() {
-        val projection = engine.project(Fixtures.tabletMeasurements, Fixtures.tabletSettings, Fixtures.pairedContext, Fixtures.tabletFixes)
+        val projection = projectTablet(Fixtures.tabletFixes)
         assertEquals(91, projection.projectedTotal)
         assertEquals(
             listOf(
@@ -86,16 +90,16 @@ class TabletGoldenTest {
 
     @Test
     fun bitrateFixAffectsNetworkAndJointProjectionEqualsSumOfGains() {
-        val bitrateAlone = engine.score(Fixtures.tabletMeasurements, Fixtures.lowerBitrate.settingsChange!!, Fixtures.pairedContext)
+        val loweredSettings = Fixtures.lowerBitrate.settingsChange!!
+        val bitrateAlone = engine.score(Fixtures.tabletMeasurements, loweredSettings, Fixtures.pairedContext)
         val networkAlone = bitrateAlone.categories.first { it.category == Category.Network }.points
         assertEquals(true, networkAlone > 18)
 
-        val pair = listOf(Fixtures.moveTo5Ghz, Fixtures.lowerBitrate)
-        val projection = engine.project(Fixtures.tabletMeasurements, Fixtures.tabletSettings, Fixtures.pairedContext, pair)
+        val projection = projectTablet(listOf(Fixtures.moveTo5Ghz, Fixtures.lowerBitrate))
         assertEquals(70 + projection.gains.sumOf { it.gain }, projection.projectedTotal)
         assertEquals(85, projection.projectedTotal)
 
-        val all = engine.project(Fixtures.tabletMeasurements, Fixtures.tabletSettings, Fixtures.pairedContext, Fixtures.tabletFixes)
+        val all = projectTablet(Fixtures.tabletFixes)
         assertEquals(70 + all.gains.sumOf { it.gain }, all.projectedTotal)
     }
 
@@ -108,9 +112,14 @@ class TabletGoldenTest {
                 Fixtures.highPerformancePowerPlan,
                 Fixtures.enableWmm,
             )
-        val projection = engine.project(Fixtures.tabletMeasurements, Fixtures.tabletSettings, Fixtures.pairedContext, reordered)
+        val projection = projectTablet(reordered)
         assertEquals(
-            listOf(Fixtures.enableWmm.id, Fixtures.enableHags.id, Fixtures.batterySaverOff.id, Fixtures.highPerformancePowerPlan.id),
+            listOf(
+                Fixtures.enableWmm.id,
+                Fixtures.enableHags.id,
+                Fixtures.batterySaverOff.id,
+                Fixtures.highPerformancePowerPlan.id,
+            ),
             projection.gains.map { it.fixId },
         )
     }
@@ -124,12 +133,12 @@ class TabletGoldenTest {
         assertEquals(true, (changes.number(MetricId.ClientRetransmitPercent) ?: 100.0) < 3.0)
         assertEquals(true, (changes.number(MetricId.SustainedUdpMbps) ?: 0.0) >= 100.0)
         assertEquals(true, (changes.number(MetricId.JitterP95Ms) ?: 100.0) <= 5.0)
-        assertEquals(MeasureUnit.Ghz, (changes[MetricId.ClientWifiBandGhz] as brenodega28.perigee.core.model.MeasuredValue.Quantity).unit)
+        assertEquals(MeasureUnit.Ghz, (changes[MetricId.ClientWifiBandGhz] as MeasuredValue.Quantity).unit)
     }
 
     @Test
     fun noFixesProjectsCurrentScore() {
-        val projection = engine.project(Fixtures.tabletMeasurements, Fixtures.tabletSettings, Fixtures.pairedContext, emptyList<FixExpectation>())
+        val projection = projectTablet(emptyList())
         assertEquals(70, projection.projectedTotal)
         assertEquals(emptyList(), projection.gains)
     }

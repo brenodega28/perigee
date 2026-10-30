@@ -157,13 +157,29 @@ class ScoringEngine(
         entry.metric?.let { return measurements[it] }
         val derived = entry.derived ?: return null
         return when (derived) {
-            DerivedInput.SustainedOverBitrate -> ratio(measurements.number(MetricId.SustainedUdpMbps), settings.bitrateMbps)
-            DerivedInput.PhyOverBitrate -> ratio(measurements.number(MetricId.ClientPhyMbps), settings.bitrateMbps)
-            DerivedInput.RefreshOverFps -> ratio(measurements.number(MetricId.RefreshRateHz), settings.fps.toDouble())
-            DerivedInput.DisplayMaxOverFps -> ratio(measurements.number(MetricId.DisplayMaxRefreshHz), settings.fps.toDouble())
-            DerivedInput.DecoderRateOverNeeded ->
+            DerivedInput.SustainedOverBitrate -> {
+                ratio(measurements.number(MetricId.SustainedUdpMbps), settings.bitrateMbps)
+            }
+
+            DerivedInput.PhyOverBitrate -> {
+                ratio(measurements.number(MetricId.ClientPhyMbps), settings.bitrateMbps)
+            }
+
+            DerivedInput.RefreshOverFps -> {
+                ratio(measurements.number(MetricId.RefreshRateHz), settings.fps.toDouble())
+            }
+
+            DerivedInput.DisplayMaxOverFps -> {
+                ratio(measurements.number(MetricId.DisplayMaxRefreshHz), settings.fps.toDouble())
+            }
+
+            DerivedInput.DecoderRateOverNeeded -> {
                 ratio(measurements.number(MetricId.ClientDecoderMaxMpixPerSec), requiredMpixPerSec(settings))
-            DerivedInput.CodecGap -> codecGap(measurements, settings)
+            }
+
+            DerivedInput.CodecGap -> {
+                codecGap(measurements, settings)
+            }
         }
     }
 
@@ -187,7 +203,8 @@ class ScoringEngine(
         if ((decoders + encoders).all { it.second == null }) return null
         val shared =
             Codec.entries.filter { codec ->
-                decoders.first { it.first == codec }.second == true && encoders.first { it.first == codec }.second == true
+                decoders.first { it.first == codec }.second == true &&
+                    encoders.first { it.first == codec }.second == true
             }
         val best = shared.maxByOrNull { it.ordinal }
         val gap =
@@ -211,14 +228,28 @@ class ScoringEngine(
         measurements: Measurements,
     ): Boolean =
         when (rule.cap) {
-            HardCap.NoHardwareDecoder -> noneAvailable(measurements, CODEC_FLAGS.map { it.second })
-            HardCap.NoHardwareEncoder -> noneAvailable(measurements, CODEC_FLAGS.map { it.third })
-            HardCap.ApolloPortsBlocked ->
-                measurements.flag(MetricId.ApolloTcpPortsOpen) == false || measurements.flag(MetricId.ApolloUdpPortsOpen) == false
-            HardCap.LossAboveLimit -> (measurements.number(MetricId.LossPercent) ?: 0.0) > (rule.limit ?: Double.MAX_VALUE)
-            HardCap.HostWifiClient24Ghz ->
+            HardCap.NoHardwareDecoder -> {
+                noneAvailable(measurements, CODEC_FLAGS.map { it.second })
+            }
+
+            HardCap.NoHardwareEncoder -> {
+                noneAvailable(measurements, CODEC_FLAGS.map { it.third })
+            }
+
+            HardCap.ApolloPortsBlocked -> {
+                measurements.flag(MetricId.ApolloTcpPortsOpen) == false ||
+                    measurements.flag(MetricId.ApolloUdpPortsOpen) == false
+            }
+
+            HardCap.LossAboveLimit -> {
+                (measurements.number(MetricId.LossPercent) ?: 0.0) >
+                    (rule.limit ?: Double.MAX_VALUE)
+            }
+
+            HardCap.HostWifiClient24Ghz -> {
                 measurements.choice(MetricId.HostLinkType) == WIFI_LINK &&
                     (measurements.number(MetricId.ClientWifiBandGhz) ?: Double.MAX_VALUE) <= (rule.limit ?: 0.0)
+            }
         }
 
     private fun noneAvailable(
@@ -229,7 +260,13 @@ class ScoringEngine(
         return flags.none { it == true } && flags.any { it == false }
     }
 
-    private fun verdictFor(total: Int): Verdict = weights.bands.sortedByDescending { it.minScore }.first { total >= it.minScore }.verdict
+    private fun verdictFor(total: Int): Verdict =
+        weights.bands
+            .sortedByDescending { it.minScore }
+            .first {
+                total >=
+                    it.minScore
+            }.verdict
 
     private fun confidenceFor(
         context: ScanContext,
@@ -238,7 +275,13 @@ class ScoringEngine(
         if (!context.completedSteps.containsAll(AnalysisStep.entries)) return Confidence.Low
         val inferredPoints = evaluations.filter { it.entry.inferred }.sumOf { it.entry.weight * it.score }
         val fallback = !context.paired || context.usedFallback
-        return if (fallback || inferredPoints > weights.confidence.inferredPointsForMedium) Confidence.Medium else Confidence.High
+        return if (fallback ||
+            inferredPoints > weights.confidence.inferredPointsForMedium
+        ) {
+            Confidence.Medium
+        } else {
+            Confidence.High
+        }
     }
 
     private fun budgetLabel(entry: MetricWeight): String {
@@ -252,7 +295,14 @@ class ScoringEngine(
         return table.filterValues { it == best }.keys.joinToString(" / ")
     }
 
-    private fun plain(number: Double): String = if (number == number.toLong().toDouble()) number.toLong().toString() else number.toString()
+    private fun plain(number: Double): String =
+        if (number ==
+            number.toLong().toDouble()
+        ) {
+            number.toLong().toString()
+        } else {
+            number.toString()
+        }
 
     private companion object {
         const val ROUNDING_HALF = 0.5
