@@ -1,0 +1,42 @@
+profiles:
+- id: developer
+  name: Developer
+  edit_files: allow
+  run_shell: allow
+  network: ask
+  install_packages: ask
+  git_push: never
+- id: reviewer
+  name: Reviewer
+  edit_files: never
+  run_shell: allow
+  network: allow
+  install_packages: never
+  git_push: never
+- id: tester
+  name: Tester
+  edit_files: never
+  run_shell: allow
+  network: allow
+  install_packages: never
+  git_push: never
+- id: lead
+  name: Lead
+  edit_files: never
+  run_shell: allow
+  network: allow
+  install_packages: never
+  git_push: never
+- id: app_testing
+  name: App testing
+  edit_files: allow
+  run_shell: allow
+  network: allow
+  install_packages: ask
+  git_push: never
+  extra_commands:
+  - xcodegen
+  - open
+  - screencapture
+  - pkill
+  - killall

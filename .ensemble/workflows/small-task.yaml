@@ -1,0 +1,48 @@
+name: Small task
+version: 3
+description: One builder builds, checks and gates verify it, a checker reviews from a fresh context, you approve. No lead.
+trigger:
+  sources:
+  - chat
+  - github
+  labels:
+  - small
+budget: 8
+steps:
+- id: build
+  type: agent
+  title: Build
+  agent: builder
+  model: sonnet
+  instructions: Build the task, add a test, run the tests, and commit.
+  next: checks
+- id: checks
+  type: check
+  title: Run the checks
+  next: gates
+- id: gates
+  type: gates
+  title: Gates
+  routes:
+    passed: review
+    changes_requested: build
+- id: review
+  type: agent
+  title: AI review
+  agent: checker
+  model: sonnet
+  instructions: Review the branch against the task. Pin real findings with your confidence; approve unless something is actually wrong.
+  routes:
+    approved: approve
+    changes_requested:
+      to: build
+      max_loops: 1
+- id: approve
+  type: approval
+  title: You approve
+  routes:
+    changes_requested: build
+    approved: end
+end:
+  action: pull_request
+  clean_up_worktrees: true

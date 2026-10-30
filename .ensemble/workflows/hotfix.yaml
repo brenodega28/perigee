@@ -1,0 +1,30 @@
+name: Hotfix
+version: 1
+description: Smallest path for urgent fixes. One builder fixes it, the checks still have to pass, you approve.
+trigger:
+  sources:
+  - chat
+  - github
+  labels:
+  - hotfix
+budget: 8
+steps:
+- id: build
+  type: agent
+  title: Fix
+  agent: builder
+  instructions: Make the smallest change that fixes the problem, add a test that reproduces it, run the tests, and commit.
+  next: checks
+- id: checks
+  type: check
+  title: Run the checks
+  next: approve
+- id: approve
+  type: approval
+  title: You approve
+  routes:
+    approved: end
+    changes_requested: build
+end:
+  action: pull_request
+  clean_up_worktrees: true

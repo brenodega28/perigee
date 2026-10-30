@@ -1,0 +1,65 @@
+name: Feature delivery
+version: 3
+description: The Lead plans and specs the work, builders build it, checks and gates verify it, the Lead reviews, you approve.
+trigger:
+  sources:
+  - chat
+  - github
+  labels:
+  - feature
+budget: 8
+steps:
+- id: plan
+  type: agent
+  title: Plan & spec the task
+  agent: lead
+  model: opus
+  instructions: Plan one task by default. Split into more tasks only when every task works and can be tested on its own, with none needing another's output. Name the files each task owns, choose the installed skills its builder should load, and write a short spec unless the request fits in one sentence. Submit the plan.
+  budget: 2
+  next: build
+- id: build
+  type: spawn
+  title: Build the plan
+  agent: builder
+  model: sonnet
+  instructions: Build your task from the plan in your own worktree, add tests, run them, and commit.
+  max_agents: 4
+  next: checks
+- id: checks
+  type: check
+  title: Run the checks
+  next: gates
+- id: gates
+  type: gates
+  title: Gates
+  routes:
+    changes_requested: build
+    passed: review
+- id: review
+  type: agent
+  title: AI review
+  agent: lead
+  model: opus
+  instructions: Read every branch against the plan and its acceptance criteria. Pin real findings with your confidence; approve unless something is actually wrong.
+  routes:
+    approved: criteria
+    changes_requested:
+      to: build
+      max_loops: 1
+- id: criteria
+  type: gates
+  title: Acceptance criteria
+  routes:
+    changes_requested: build
+    passed: approve
+- id: approve
+  type: approval
+  title: You approve
+  routes:
+    approved: end
+    changes_requested:
+      to: build
+      max_loops: 3
+end:
+  action: pull_request
+  clean_up_worktrees: true

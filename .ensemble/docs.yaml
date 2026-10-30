@@ -1,0 +1,6 @@
+docs:
+- title: AGENTS.md
+  path: AGENTS.md
+  description: ''
+  readers: all
+  enabled: true
