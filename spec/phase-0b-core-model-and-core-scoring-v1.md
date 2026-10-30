@@ -1,6 +1,6 @@
 ---
 title: Phase 0b — core/model and core/scoring v1
-status: in-progress
+status: done
 owner: Breno
 linked_runs: [60]
 created: 2026-10-29
@@ -32,10 +32,10 @@ Implement the shared data model (`:core:model`) and the v1 scoring engine (`:cor
 
 ## Acceptance criteria
 
-- [ ] The branch starts with commit 21a3d33 from `crew/lead/lead` cherry-picked (adds specs/SPEC.md and specs/ROADMAP.md).
+- [x] The branch starts with commit 21a3d33 from `crew/lead/lead` cherry-picked (adds specs/SPEC.md and specs/ROADMAP.md).
 - [ ] `:core:model` and `:core:scoring` are pure Kotlin in `commonMain` with no platform code, and build for JVM and Android; the placeholder `CoreModel`/`CoreScoring` objects and their tests are replaced.
 - [ ] `weights.json` exists in `:core:scoring`, carries `"version": "scoring/v1"`, is embedded by a Gradle task at build time and parsed with kotlinx.serialization, and is the only source of sub-weights, curve endpoints, thresholds, caps and bands; `ScanScore.scoringVersion` is `scoring/v1`.
-- [ ] Tablet fixture inputs come from the design canvas: client Wi-Fi 2.4 GHz ch 6, 20 MHz, −58 dBm, 144 Mbps PHY, 18 % retransmits; RTT median 6.8 ms; jitter p95 11.2 ms; loss 0.8 % at 80 Mbps; sustained UDP 61 Mbps; WMM off (inferred), band steering on (inferred); host Ethernet 1 Gbps full duplex, Apollo TCP 47984/47989/48010 and UDP 47998–48000 open, NVENC HEVC 10-bit + AV1, encode 3.1 ms, HAGS off, Balanced power plan; client HW HEVC Main10 + AV1, decode 4.4 ms, 60 Hz refresh (battery saver on); Artemis 1440p · 120 fps · HEVC · 80 Mbps; paired, all six steps done. Any value the design doesn't show is chosen by the builder and listed in the fixture as an assumption.
+- [x] Tablet fixture inputs come from the design canvas: client Wi-Fi 2.4 GHz ch 6, 20 MHz, −58 dBm, 144 Mbps PHY, 18 % retransmits; RTT median 6.8 ms; jitter p95 11.2 ms; loss 0.8 % at 80 Mbps; sustained UDP 61 Mbps; WMM off (inferred), band steering on (inferred); host Ethernet 1 Gbps full duplex, Apollo TCP 47984/47989/48010 and UDP 47998–48000 open, NVENC HEVC 10-bit + AV1, encode 3.1 ms, HAGS off, Balanced power plan; client HW HEVC Main10 + AV1, decode 4.4 ms, 60 Hz refresh (battery saver on); Artemis 1440p · 120 fps · HEVC · 80 Mbps; paired, all six steps done. Any value the design doesn't show is chosen by the builder and listed in the fixture as an assumption.
 - [ ] Tablet fixture scores exactly Network 18/35, Host 25/30, Client 18/20, Settings 9/15, total 70, verdict Playable, no cap applied, confidence High.
 - [ ] Tablet fixture check statuses match the design's All checks list: Host uplink, Apollo TCP ports, Apollo UDP ports, Host encoder, Encode latency, Client decoder, Decode latency = Pass; Client Wi-Fi band = Fail; HAGS, Power plan, Client refresh rate = Warn. RTT median = Pass; jitter p95, loss at target and sustained UDP = Warn.
 - [ ] Tablet fixture projection with the six design fixes (move to 5 GHz, lower bitrate to 40 Mbps, enable WMM [Low], enable HAGS [Medium], High performance power plan, battery saver off) gives projected total 91 and gains in order: 5 GHz +11, bitrate +4, WMM +2, HAGS +2, power plan +1, battery saver +1. The 5 GHz fix's expected values match the Fix screen: 5 GHz · 80 MHz, PHY ≥ 600 Mbps, retransmits < 3 %, sustained UDP ≥ 100 Mbps, jitter p95 ≤ 5 ms.
